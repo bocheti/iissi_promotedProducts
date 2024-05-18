@@ -53,6 +53,10 @@ module.exports = {
         type: Sequelize.DATE,
         defaultValue: new Date()
       },
+      promotedAt: {
+        type: Sequelize.DATE,
+        defaultValue: null
+      },
       updatedAt: {
         allowNull: false,
         type: Sequelize.DATE,

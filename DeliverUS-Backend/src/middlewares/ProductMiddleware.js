@@ -1,4 +1,5 @@
 import { Order, Product, Restaurant } from '../models/models.js'
+import Sequelize from 'sequelize'
 const checkProductOwnership = async (req, res, next) => {
   try {
     const product = await Product.findByPk(req.params.productId, { include: { model: Restaurant, as: 'restaurant' } })
@@ -37,4 +38,23 @@ const checkProductHasNotBeenOrdered = async (req, res, next) => {
   }
 }
 
-export { checkProductOwnership, checkProductRestaurantOwnership, checkProductHasNotBeenOrdered }
+const checkPromotedProducts = async (req, res, next) => {
+  try {
+    const product = await Product.findByPk(req.params.productId)
+    const promotedItems = await Product.findOne({
+      where: { restaurantId: product.restaurantId, promotedAt: { [Sequelize.Op.ne]: null } },
+      attributes: [
+        [Sequelize.fn('COUNT', Sequelize.col('id')), 'promotedItems']
+      ]
+    })
+    if (!product.promotedAt && promotedItems.dataValues.promotedItems >= 5) {
+      return res.status(409).send('You can only have 5 simultaneously promoted restaurants')
+    } else {
+      return next()
+    }
+  } catch (err) {
+    return Promise.reject(new Error(err))
+  }
+}
+
+export { checkProductOwnership, checkProductRestaurantOwnership, checkProductHasNotBeenOrdered, checkPromotedProducts }

@@ -13,7 +13,7 @@ export default function ImageCard (props) {
           <Image style={styles.image} source={props.imageUri} />
           {/* Solution for windows server <Image style={styles.image} source={props.imageUri?.uri.replace(/\\/g, '/')} /> */}
         </View>
-        <View style={styles.cardBody}>
+        <View style={[styles.cardBody, props.bodyStyle]}>
             <TextSemiBold textStyle={styles.cardTitle}>{props.title}</TextSemiBold>
             {props.children}
         </View>
