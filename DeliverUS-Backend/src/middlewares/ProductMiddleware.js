@@ -41,17 +41,16 @@ const checkProductHasNotBeenOrdered = async (req, res, next) => {
 const checkPromotedProducts = async (req, res, next) => {
   try {
     const product = await Product.findByPk(req.params.productId)
-    const promotedItems = await Product.findOne({
+    const promotedItems = await Product.findAll({
       where: { restaurantId: product.restaurantId, promotedAt: { [Sequelize.Op.ne]: null } },
-      attributes: [
-        [Sequelize.fn('COUNT', Sequelize.col('id')), 'promotedItems']
-      ]
+      order: [['promotedAt', 'ASC']]
     })
-    if (!product.promotedAt && promotedItems.dataValues.promotedItems >= 5) {
-      return res.status(409).send('You can only have 5 simultaneously promoted restaurants')
-    } else {
-      return next()
+    if (!product.promotedAt && promotedItems.length >= 5) {
+      const productToUnpromote = promotedItems[0]
+      productToUnpromote.promotedAt = null
+      productToUnpromote.save()
     }
+    return next()
   } catch (err) {
     return Promise.reject(new Error(err))
   }
